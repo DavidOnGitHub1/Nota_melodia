@@ -1,8 +1,10 @@
 import sys
 import subprocess
+import os
 from antlr4 import *
 from lenguajeLexer import lenguajeLexer
 from lenguajeParser import lenguajeParser
+
 # Diccionario actualizado para soportar octava 3 y octava 4 (con sostenidos)
 notas_lilypond = {
     # --- Octava 3 (Notas más graves / "gruesas") ---
@@ -34,8 +36,16 @@ def ejecutar_proyecto():
     # Recibir el nombre de la canción enviado desde la interfaz
     nombre_cancion = sys.argv[1] if len(sys.argv) > 1 else "mi_cancion"
     
-    archivo_bzl = f"programa/{nombre_cancion}.bzl"
-    nombre_base = f"programa/{nombre_cancion}"
+    # Asegurar que la carpeta programa exista
+    os.makedirs("programa", exist_ok=True)
+    
+    # Manejar rutas flexibles por si cambia el directorio de trabajo
+    if os.path.basename(os.getcwd()) == "programa":
+        archivo_bzl = f"{nombre_cancion}.bzl"
+        nombre_base = f"{nombre_cancion}"
+    else:
+        archivo_bzl = f"programa/{nombre_cancion}.bzl"
+        nombre_base = f"programa/{nombre_cancion}"
     
     # 1. Leer con ANTLR
     try:
@@ -68,37 +78,28 @@ def ejecutar_proyecto():
 
     string_notas = " ".join(secuencia_notas)
 
-    # 3. Código dinámico para LilyPond
-    codigo_ly = f"""
-    \\version "2.24.0"
-    \\header {{ tagline = ##f }}
-    \\score {{
-      {{
-        \\clef treble
-        \\time 4/4
-        \\tempo 4 = 90
-        \\stemDown
-        {string_notas}
-      }}
-      \\layout {{ }}
-      \\midi {{ }}
-    }}
-    """
+    # 3. Código dinámico para LilyPond (Asegurando \version en la línea 1 exacta)
+    codigo_ly = f'\\version "2.24.4"\n\\header {{ tagline = ##f }}\n\\score {{\n  {{\n    \\clef treble\n    \\time 4/4\n    \\tempo 4 = 90\n    \\stemDown\n    {string_notas}\n  }}\n  \\layout {{ }}\n  \\midi {{ }}\n}}\n'
     
-    with open(f"{nombre_base}.ly", "w", encoding="utf-8") as f:
+    ly_path = f"{nombre_base}.ly"
+    with open(ly_path, "w", encoding="utf-8") as f:
         f.write(codigo_ly)
 
     print(f"Generando partitura PDF y audio para '{nombre_cancion}'...")
 
-    # 4. LilyPond compila a .pdf y .midi
-    subprocess.run(["lilypond", "-o", nombre_base, f"{nombre_base}.ly"])
+    # 4. LilyPond compila a .pdf y .midi (pasando el archivo exacto)
+    subprocess.run(["lilypond", "-o", nombre_base, ly_path])
+
+    midi_path = f"{nombre_base}.midi"
+    wav_path = f"{nombre_base}.wav"
+    mp3_path = f"{nombre_base}.mp3"
 
     # 5. Timidity convierte MIDI a WAV
-    resultado = subprocess.run(["timidity", f"{nombre_base}.midi", "-Ow", "-o", f"{nombre_base}.wav"])
+    resultado = subprocess.run(["timidity", midi_path, "-Ow", "-o", wav_path])
     
     if resultado.returncode == 0:
         # 6. FFmpeg convierte WAV a MP3
-        subprocess.run(["ffmpeg", "-y", "-i", f"{nombre_base}.wav", "-af", "volume=12dB", f"{nombre_base}.mp3"])
+        subprocess.run(["ffmpeg", "-y", "-i", wav_path, "-af", "volume=12dB", mp3_path])
         print(f"¡Listo! Archivos generados: {nombre_cancion}.pdf y {nombre_cancion}.mp3")
     else:
         print("Hubo un detalle convirtiendo el audio con timidity.")
