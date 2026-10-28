@@ -78,8 +78,8 @@ def ejecutar_proyecto():
 
     string_notas = " ".join(secuencia_notas)
 
-    # 3. Código dinámico para LilyPond (Asegurando \version en la línea 1 exacta)
-    codigo_ly = f'\\version "2.24.4"\n\\header {{ tagline = ##f }}\n\\score {{\n  {{\n    \\clef treble\n    \\time 4/4\n    \\tempo 4 = 90\n    \\stemDown\n    {string_notas}\n  }}\n  \\layout {{ }}\n  \\midi {{ }}\n}}\n'
+    # 3. Código dinámico para LilyPond (Asegurando \version "2.24.4" estricto en la línea 1)
+    codigo_ly = f'\\version "2.24.4"\\n\\header {{ tagline = ##f }}\\n\\score {{\n  {{\n    \\clef treble\n    \\time 4/4\n    \\tempo 4 = 90\n    \\stemDown\n    {string_notas}\n  }}\n  \\layout {{ }}\n  \\midi {{ }}\n}}\n'
     
     ly_path = f"{nombre_base}.ly"
     with open(ly_path, "w", encoding="utf-8") as f:
@@ -87,7 +87,7 @@ def ejecutar_proyecto():
 
     print(f"Generando partitura PDF y audio para '{nombre_cancion}'...")
 
-    # 4. LilyPond compila a .pdf y .midi (pasando el archivo exacto)
+    # 4. LilyPond compila a .pdf y .midi
     subprocess.run(["lilypond", "-o", nombre_base, ly_path])
 
     midi_path = f"{nombre_base}.midi"
