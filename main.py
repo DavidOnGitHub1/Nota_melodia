@@ -36,14 +36,14 @@ def ejecutar_proyecto():
     # Recibir el nombre de la canción enviado desde la interfaz
     nombre_cancion = sys.argv[1] if len(sys.argv) > 1 else "mi_cancion"
     
-    # Asegurar que la carpeta programa exista
-    os.makedirs("programa", exist_ok=True)
-    
-    # Definir la ruta del archivo .bzl de entrada
+    # Definir la ruta del archivo .bzl de entrada manejando si se ejecuta desde programa o raíz
     if os.path.basename(os.getcwd()) == "programa":
         archivo_bzl = f"{nombre_cancion}.bzl"
     else:
-        archivo_bzl = f"programa/{nombre_cancion}.bzl"
+        if os.path.exists(f"programa/{nombre_cancion}.bzl"):
+            archivo_bzl = f"programa/{nombre_cancion}.bzl"
+        else:
+            archivo_bzl = f"{nombre_cancion}.bzl"
     
     # 1. Leer con ANTLR
     try:
@@ -79,20 +79,19 @@ def ejecutar_proyecto():
     # 3. Código estricto asegurando \version en la primera línea exacta
     codigo_ly = '\\version "2.24.4"\n\\header { tagline = ##f }\n\\score {\n  {\n    \\clef treble\n    \\time 4/4\n    \\tempo 4 = 90\n    \\stemDown\n    ' + string_notas + '\n  }\n  \\layout { }\n  \\midi { }\n}\n'
     
-    # Ruta limpia del archivo .ly dentro de la carpeta programa sin duplicaciones
-    ly_path = f"programa/{nombre_cancion}.ly"
+    # Escribir directamente usando solo el nombre base sin prefijos de carpeta
+    ly_path = f"{nombre_cancion}.ly"
     with open(ly_path, "w", encoding="utf-8") as f:
         f.write(codigo_ly)
 
     print(f"Generando partitura PDF y audio para '{nombre_cancion}'...")
 
-    # 4. LilyPond compila usando la ruta limpia
-    base_salida = f"programa/{nombre_cancion}"
-    subprocess.run(["lilypond", "-o", base_salida, ly_path])
+    # 4. LilyPond compila directamente en el directorio actual
+    subprocess.run(["lilypond", "-o", nombre_cancion, ly_path])
 
-    midi_path = f"programa/{nombre_cancion}.midi"
-    wav_path = f"programa/{nombre_cancion}.wav"
-    mp3_path = f"programa/{nombre_cancion}.mp3"
+    midi_path = f"{nombre_cancion}.midi"
+    wav_path = f"{nombre_cancion}.wav"
+    mp3_path = f"{nombre_cancion}.mp3"
 
     # 5. Timidity convierte MIDI a WAV
     resultado = subprocess.run(["timidity", midi_path, "-Ow", "-o", wav_path])
