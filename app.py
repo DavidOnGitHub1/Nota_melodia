@@ -9,7 +9,7 @@ PROGRAMA_DIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'program
 
 @app.route('/')
 def index():
-    return render_template('index.html', audio_file=None)
+    return render_template('index.html', audio_file=None, pdf_file=None)
 
 @app.route('/generate', methods=['GET', 'POST'])
 def generate():
@@ -21,7 +21,6 @@ def generate():
         os.makedirs(PROGRAMA_DIR, exist_ok=True)
         bzl_path = os.path.join(PROGRAMA_DIR, f"{song_name}.bzl")
         
-        # Guardar las notas limpias enviadas desde la web
         with open(bzl_path, 'w', encoding='utf-8') as f:
             f.write(raw_notes)
         
@@ -31,7 +30,8 @@ def generate():
             print(f"Error al ejecutar el compilador: {e}")
         
         audio_filename = f"{song_name}.mp3"
-        return render_template('index.html', audio_file=audio_filename)
+        pdf_filename = f"{song_name}.pdf"
+        return render_template('index.html', audio_file=audio_filename, pdf_file=pdf_filename)
     
     return redirect(url_for('index'))
 
