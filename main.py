@@ -53,13 +53,12 @@ def ejecutar_proyecto():
 
     # Crear el archivo .ly en la RAIZ (evita el error de LilyPond)
     # El código .ly debe tener layout (para PDF) y midi (para audio)
+   
     codigo_ly = '\\version "2.24.4"\n\\header { tagline = ##f }\n\\score {\n  {\n    \\clef treble\n    \\time 4/4\n    \\tempo 4 = 100\n    \\stemDown\n    ' + string_notas + '\n  }\n  \\layout { }\n  \\midi { }\n}\n'
-    
-    #codigo_ly = '\\version "2.24.4"\n\\header { tagline = ##f }\n\\score {\n  {\n    \\clef treble\n    \\time 4/4\n    \\tempo 4 = 100\n    \\stemDown\n    ' + string_notas + '\n  }\n  \\layout { }\n  \\midi { }\n}\n'
-    #ly_file = f"{nombre_cancion}.ly"
+    ly_file = f"{nombre_cancion}.ly"
     with open(ly_file, "w", encoding="utf-8") as f:
         f.write(codigo_ly)
-
+    #
     print(f"Ejecutando LilyPond para {ly_file}...")
     res_lily = subprocess.run(["lilypond", ly_file], capture_output=True, text=True)
     print(res_lily.stdout)
