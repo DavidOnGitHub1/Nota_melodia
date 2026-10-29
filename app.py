@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, send_from_directory, redirect, url_for
 import os
 import subprocess
+import time
 
 app = Flask(__name__)
 
@@ -14,8 +15,13 @@ def index():
 @app.route('/generate', methods=['GET', 'POST'])
 def generate():
     if request.method == 'POST':
-        song_name = request.form.get('song_name', 'melodia_dta')
+        # Tomar el nombre del formulario o generar uno único con timestamp para evitar conflictos
+        song_name_input = request.form.get('song_name', 'melodia')
+        song_name = f"{song_name_input}_{int(time.time())}"
         notes = request.form.get('notes', '')
+        
+        # Asegurar que la carpeta 'programa' exista
+        os.makedirs(PROGRAMA_DIR, exist_ok=True)
         
         # Ruta del archivo .bzl dentro de la carpeta programa
         bzl_path = os.path.join(PROGRAMA_DIR, f"{song_name}.bzl")
@@ -25,21 +31,20 @@ def generate():
             f.write(notes)
         
         try:
-            # Ejecutar tu main.py para procesar la melodía
-            subprocess.run(["python3", "main.py"], check=True)
+            # Ejecutar main.py pasando el nombre de la canción como argumento (¡clave para tu main.py!)
+            subprocess.run(["python3", "main.py", song_name], check=True)
             
         except subprocess.CalledProcessError as e:
             print(f"Error al ejecutar el compilador: {e}")
         
-        # El archivo MP3 resultante que lee el reproductor
+        # El archivo MP3 resultante que leerá el reproductor en la web
         audio_filename = f"{song_name}.mp3"
         
         return render_template('index.html', audio_file=audio_filename)
     
-    # Si alguien entra por GET a /generate, lo regresamos al inicio de forma segura
     return redirect(url_for('index'))
 
-# Ruta para servir el audio desde la carpeta 'programa'
+# Ruta para servir el archivo de audio generado desde la carpeta 'programa'
 @app.route('/download/<filename>')
 def download_file(filename):
     return send_from_directory(PROGRAMA_DIR, filename)
