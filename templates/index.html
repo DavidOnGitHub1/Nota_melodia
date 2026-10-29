@@ -20,7 +20,7 @@
             padding: 30px;
             border-radius: 10px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            width: 420px;
+            width: 450px;
         }
         h1 { color: #1db954; text-align: center; }
         label { display: block; margin-top: 15px; font-weight: bold; }
@@ -59,8 +59,15 @@
             <label for="song_name">Nombre de la canción:</label>
             <input type="text" id="song_name" name="song_name" value="melodia" required>
 
-            <label for="notes">Notas musicales (ej. (:) 24):</label>
-            <textarea id="notes" name="notes" rows="6" placeholder="(:) 24&#10;(:) 26&#10;(:) 28" required></textarea>
+            <label for="notes">Notas musicales:</label>
+            <textarea id="notes" name="notes" rows="8" required>f4
+g4
+a4
+g4
+f4
+g4
+f4
+e4</textarea>
 
             <button type="submit">Generar Melodía</button>
         </form>

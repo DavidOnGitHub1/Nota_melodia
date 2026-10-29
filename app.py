@@ -26,19 +26,9 @@ def generate():
         # Ruta del archivo .bzl dentro de la carpeta programa
         bzl_path = os.path.join(PROGRAMA_DIR, f"{song_name}.bzl")
         
-        # Envolver automáticamente las notas del usuario en la estructura exacta que ANTLR exige
-        bzl_content = f"""Main |:
-    Beethoven 0
-    :|
-
-Beethoven x |:
-    {raw_notes}
-    :|
-"""
-        
-        # Guardar el archivo .bzl con la estructura completa
+        # Guardar exactamente las notas que el usuario escribió en el textarea
         with open(bzl_path, 'w', encoding='utf-8') as f:
-            f.write(bzl_content)
+            f.write(raw_notes)
         
         try:
             # Ejecutar main.py pasando el nombre de la canción como argumento
@@ -62,4 +52,3 @@ def download_file(filename):
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 10000))
     app.run(host='0.0.0.0', port=port, debug=True)
-    
