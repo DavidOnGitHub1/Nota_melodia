@@ -1,10 +1,11 @@
 FROM python:3.10-slim
 
-# Instalar dependencias del sistema: Java (para ANTLR), LilyPond, TiMidity, FFmpeg y herramientas de compilación
+# Instalar dependencias del sistema: Java, LilyPond, TiMidity, sonidos (freepats), FFmpeg y herramientas
 RUN apt-get update && apt-get install -y \
     default-jre \
     lilypond \
     timidity \
+    freepats \
     ffmpeg \
     curl \
     git \
@@ -16,7 +17,7 @@ RUN curl -o /usr/local/lib/antlr-4.13.1-complete.jar https://www.antlr.org/downl
 # Establecer directorio de trabajo
 WORKDIR /app
 
-# Copiar requirements e instalar dependencias de Python (incluyendo antlr4-python3-runtime)
+# Copiar requirements e instalar dependencias de Python
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
