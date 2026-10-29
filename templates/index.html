@@ -20,7 +20,7 @@
             padding: 30px;
             border-radius: 10px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            width: 400px;
+            width: 420px;
         }
         h1 { color: #1db954; text-align: center; }
         label { display: block; margin-top: 15px; font-weight: bold; }
@@ -32,6 +32,8 @@
             border: 1px solid #444;
             color: white;
             border-radius: 5px;
+            box-sizing: border-box;
+            font-family: monospace;
         }
         button {
             width: 100%;
@@ -57,8 +59,8 @@
             <label for="song_name">Nombre de la canción:</label>
             <input type="text" id="song_name" name="song_name" value="melodia" required>
 
-            <label for="notes">Notas musicales (una por línea):</label>
-            <textarea id="notes" name="notes" rows="5" placeholder="c4&#10;d4&#10;e4" required></textarea>
+            <label for="notes">Notas musicales (ej. (:) 24):</label>
+            <textarea id="notes" name="notes" rows="6" placeholder="(:) 24&#10;(:) 26&#10;(:) 28" required></textarea>
 
             <button type="submit">Generar Melodía</button>
         </form>
@@ -67,12 +69,12 @@
             <h3>Resultado:</h3>
             {% if audio_file %}
                 <p>Reproduciendo: {{ audio_file }}</p>
-                <audio controls>
+                <audio controls autoplay>
                     <source src="{{ url_for('download_file', filename=audio_file) }}" type="audio/mpeg">
                     Tu navegador no soporta el elemento de audio.
                 </audio>
             {% else %}
-                <p style="color: #888;">Genera una melodía para escuchar el audio.</p>
+                <p style="color: #888;">Escribe tus notas y genera la melodía.</p>
             {% endif %}
         </div>
     </div>

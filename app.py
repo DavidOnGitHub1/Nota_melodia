@@ -15,10 +15,10 @@ def index():
 @app.route('/generate', methods=['GET', 'POST'])
 def generate():
     if request.method == 'POST':
-        # Tomar el nombre del formulario o generar uno único con timestamp para evitar conflictos
+        # Tomar el nombre del formulario o generar uno único con timestamp
         song_name_input = request.form.get('song_name', 'melodia')
         song_name = f"{song_name_input}_{int(time.time())}"
-        notes = request.form.get('notes', '')
+        raw_notes = request.form.get('notes', '')
         
         # Asegurar que la carpeta 'programa' exista
         os.makedirs(PROGRAMA_DIR, exist_ok=True)
@@ -26,12 +26,22 @@ def generate():
         # Ruta del archivo .bzl dentro de la carpeta programa
         bzl_path = os.path.join(PROGRAMA_DIR, f"{song_name}.bzl")
         
-        # Guardar las notas ingresadas en el archivo .bzl
+        # Envolver automáticamente las notas del usuario en la estructura exacta que ANTLR exige
+        bzl_content = f"""Main |:
+    Beethoven 0
+    :|
+
+Beethoven x |:
+    {raw_notes}
+    :|
+"""
+        
+        # Guardar el archivo .bzl con la estructura completa
         with open(bzl_path, 'w', encoding='utf-8') as f:
-            f.write(notes)
+            f.write(bzl_content)
         
         try:
-            # Ejecutar main.py pasando el nombre de la canción como argumento (¡clave para tu main.py!)
+            # Ejecutar main.py pasando el nombre de la canción como argumento
             subprocess.run(["python3", "main.py", song_name], check=True)
             
         except subprocess.CalledProcessError as e:
