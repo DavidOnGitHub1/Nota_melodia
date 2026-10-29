@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Melodías - Bazilio</title>
+    <style>
+        body { font-family: system-ui, sans-serif; background: #121212; color: #e0e0e0; padding: 20px; max-width: 600px; margin: auto; }
+        h1 { text-align: center; color: #4CAF50; }
+        label { font-weight: bold; display: block; margin-top: 15px; }
+        input, textarea { width: 100%; padding: 10px; margin-top: 5px; background: #1e1e1e; color: #fff; border: 1px solid #333; border-radius: 5px; box-sizing: border-box; }
+        button { background: #4CAF50; color: white; padding: 12px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 15px; }
+        button:hover { background: #45a049; }
+        .player { margin-top: 25px; background: #1e1e1e; padding: 15px; border-radius: 8px; }
+        audio { width: 100%; margin-top: 10px; }
+        .btn-pdf { background: #2196F3; text-decoration: none; display: block; text-align: center; padding: 10px; color: white; border-radius: 5px; margin-top: 10px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Bazilio Web</h1>
+    <form method="POST">
+        <label for="nombre">Nombre de la canción:</label>
+        <input type="text" id="nombre" name="nombre" value="melodia" required>
+
+        <label for="notas">Notas musicales (una por línea):</label>
+        <textarea id="notas" name="notas" rows="8" placeholder="c4&#10;d4&#10;e4" required>{{ notas_ingresadas if notas_ingresadas else "c4&#10;d4&#10;e4" }}</textarea>
+
+        <button type="submit">Generar Melodía</button>
+    </form>
+
+    {% if audio_file %}
+    <div class="player">
+        <h3>Resultado:</h3>
+        <audio controls autoplay>
+            <source src="{{ url_for('download_file', filename=audio_file) }}?v={{ range(1, 99999) | random }}" type="audio/mp3">
+            Tu navegador no soporta el reproductor de audio.
+        </audio>
+
+        {% if pdf_file %}
+        <a class="btn-pdf" href="{{ url_for('download_file', filename=pdf_file) }}" target="_blank">Descargar Partitura PDF</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</body>
+</html>
