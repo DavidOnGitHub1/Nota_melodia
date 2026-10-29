@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_from_directory
+from flask import Flask, render_template, request, send_from_directory, redirect, url_for
 import os
 import subprocess
 
@@ -11,30 +11,33 @@ PROGRAMA_DIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'program
 def index():
     return render_template('index.html', audio_file=None)
 
-@app.route('/generate', methods=['POST'])
+@app.route('/generate', methods=['GET', 'POST'])
 def generate():
-    song_name = request.form.get('song_name', 'melodia_dta')
-    notes = request.form.get('notes', '')
-    
-    # Ruta del archivo .bzl dentro de la carpeta programa
-    bzl_path = os.path.join(PROGRAMA_DIR, f"{song_name}.bzl")
-    
-    # Guardar las notas ingresadas en el archivo .bzl
-    with open(bzl_path, 'w', encoding='utf-8') as f:
-        f.write(notes)
-    
-    try:
-        # Ejecutar tu main.py pasando el archivo o procesando la melodía
-        # Ajusta esto si tu main.py recibe argumentos específicos
-        subprocess.run(["python3", "main.py"], check=True)
+    if request.method == 'POST':
+        song_name = request.form.get('song_name', 'melodia_dta')
+        notes = request.form.get('notes', '')
         
-    except subprocess.CalledProcessError as e:
-        print(f"Error al ejecutar el compilador: {e}")
+        # Ruta del archivo .bzl dentro de la carpeta programa
+        bzl_path = os.path.join(PROGRAMA_DIR, f"{song_name}.bzl")
+        
+        # Guardar las notas ingresadas en el archivo .bzl
+        with open(bzl_path, 'w', encoding='utf-8') as f:
+            f.write(notes)
+        
+        try:
+            # Ejecutar tu main.py para procesar la melodía
+            subprocess.run(["python3", "main.py"], check=True)
+            
+        except subprocess.CalledProcessError as e:
+            print(f"Error al ejecutar el compilador: {e}")
+        
+        # El archivo MP3 resultante que lee el reproductor
+        audio_filename = f"{song_name}.mp3"
+        
+        return render_template('index.html', audio_file=audio_filename)
     
-    # El archivo MP3 resultante que lee el reproductor
-    audio_filename = f"{song_name}.mp3"
-    
-    return render_template('index.html', audio_file=audio_filename)
+    # Si alguien entra por GET a /generate, lo regresamos al inicio de forma segura
+    return redirect(url_for('index'))
 
 # Ruta para servir el audio desde la carpeta 'programa'
 @app.route('/download/<filename>')
