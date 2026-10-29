@@ -1,10 +1,6 @@
 import sys
 import subprocess
 import os
-import re
-from antlr4 import *
-from lenguajeLexer import lenguajeLexer
-from lenguajeParser import lenguajeParser
 
 def ejecutar_proyecto():
     nombre_cancion = sys.argv[1] if len(sys.argv) > 1 else "mi_cancion"
@@ -14,46 +10,36 @@ def ejecutar_proyecto():
     if not os.path.exists(archivo_bzl):
         archivo_bzl = f"{nombre_cancion}.bzl"
     
-    # 1. ANTLR
-    try:
-        input_stream = FileStream(archivo_bzl, encoding='utf-8')
-        lexer = lenguajeLexer(input_stream)
-        stream = CommonTokenStream(lexer)
-        parser = lenguajeParser(stream)
-        tree = parser.programa()
-        print(f"¡Análisis sintáctico exitoso para '{nombre_cancion}'!")
-    except Exception as e:
-        print(f"ERROR ANTLR: {e}")
-        return
-
-    # 2. Extraer notas
+    # Leer las notas directamente línea por línea
     secuencia_notas = []
     try:
         with open(archivo_bzl, "r", encoding="utf-8") as f:
             for linea in f:
-                linea_limpia = linea.strip()
-                if not linea_limpia or "|" in linea_limpia or "Main" in linea_limpia or "Beethoven" in linea_limpia:
+                nota_limpia = linea.strip().lower()
+                # Ignorar líneas vacías o de estructura
+                if not nota_limpia or "|" in nota_limpia or "main" in nota_limpia or "beethoven" in nota_limpia:
                     continue
                 
-                match = re.match(r"^([a-zA-Z]+)([0-9]+)$", linea_limpia)
-                if match:
-                    nota = match.group(1).lower()
-                    octava = match.group(2)
-                    if octava == '4':
-                        secuencia_notas.append(f"{nota}'4")
-                    elif octava == '3':
-                        secuencia_notas.append(f"{nota}4")
-                    else:
-                        secuencia_notas.append(f"{nota}{octava}")
+                # Si la nota termina en 4 (ej. f4, g4), LilyPond usa f'4, g'4
+                if nota_limpia.endswith('4'):
+                    nombre = nota_limpia[:-1]
+                    secuencia_notas.append(f"{nombre}'4")
+                elif nota_limpia.endswith('3'):
+                    nombre = nota_limpia[:-1]
+                    secuencia_notas.append(f"{nombre}4")
+                else:
+                    secuencia_notas.append(f"{nota_limpia}4")
+        
+        print(f"Notas extraídas con éxito: {secuencia_notas}")
     except Exception as e:
-        print(f"ERROR leyendo notas: {e}")
+        print(f"Error leyendo las notas: {e}")
 
     if not secuencia_notas:
         secuencia_notas = ["c'4", "e'4", "g'4"]
 
     string_notas = " ".join(secuencia_notas)
 
-    # 3. LilyPond .ly
+    # Generar código LilyPond
     codigo_ly = '\\version "2.24.4"\n\\header { tagline = ##f }\n\\score {\n  {\n    \\clef treble\n    \\time 4/4\n    \\tempo 4 = 90\n    \\stemDown\n    ' + string_notas + '\n  }\n  \\layout { }\n  \\midi { }\n}\n'
     
     ly_path = f"programa/{nombre_cancion}.ly"
@@ -62,10 +48,8 @@ def ejecutar_proyecto():
 
     base_output = f"programa/{nombre_cancion}"
 
-    # 4. LilyPond
-    print( ejecutando_lily := f"Ejecutando LilyPond para {ly_path}..." )
+    # 1. LilyPond -> PDF y MIDI
     res_lily = subprocess.run(["lilypond", "-o", base_output, ly_path], capture_output=True, text=True)
-    print(res_lily.stdout)
     if res_lily.returncode != 0:
         print("ERROR LILYPOND:", res_lily.stderr)
         return
@@ -74,19 +58,16 @@ def ejecutar_proyecto():
     wav_path = f"programa/{nombre_cancion}.wav"
     mp3_path = f"programa/{nombre_cancion}.mp3"
 
-    # 5. TiMidity
-    print("Ejecutando TiMidity...")
+    # 2. TiMidity -> MIDI a WAV
     res_timidity = subprocess.run(["timidity", midi_path, "-Ow", "-o", wav_path], capture_output=True, text=True)
-    print(res_timidity.stdout)
     if res_timidity.returncode != 0:
         print("ERROR TIMIDITY:", res_timidity.stderr)
         return
 
-    # 6. FFmpeg
-    print("Ejecutando FFmpeg...")
+    # 3. FFmpeg -> WAV a MP3 robusto
     res_ffmpeg = subprocess.run(["ffmpeg", "-y", "-i", wav_path, "-acodec", "libmp3lame", "-b:a", "128k", mp3_path], capture_output=True, text=True)
     if res_ffmpeg.returncode == 0:
-        print(f"¡ÉXITO TOTAL! Archivo MP3 generado en {mp3_path}")
+        print(f"¡ÉXITO! Archivo MP3 generado correctamente en {mp3_path}")
     else:
         print("ERROR FFMPEG:", res_ffmpeg.stderr)
 

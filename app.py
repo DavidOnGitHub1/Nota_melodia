@@ -2,7 +2,6 @@ from flask import Flask, render_template, request, send_from_directory, redirect
 import os
 import subprocess
 import time
-import traceback
 
 app = Flask(__name__)
 
@@ -15,37 +14,21 @@ def index():
 @app.route('/generate', methods=['GET', 'POST'])
 def generate():
     if request.method == 'POST':
+        song_name_input = request.form.get('song_name', 'melodia')
+        song_name = f"{song_name_input}_{int(time.time())}"
+        raw_notes = request.form.get('notes', '')
+        
+        os.makedirs(PROGRAMA_DIR, exist_ok=True)
+        bzl_path = os.path.join(PROGRAMA_DIR, f"{song_name}.bzl")
+        
+        # Guardar las notas limpias enviadas desde la web
+        with open(bzl_path, 'w', encoding='utf-8') as f:
+            f.write(raw_notes)
+        
         try:
-            song_name_input = request.form.get('song_name', 'melodia')
-            song_name = f"{song_name_input}_{int(time.time())}"
-            raw_notes = request.form.get('notes', '')
-            
-            os.makedirs(PROGRAMA_DIR, exist_ok=True)
-            bzl_path = os.path.join(PROGRAMA_DIR, f"{song_name}.bzl")
-            
-            bzl_content = f"""Main |:
-    Beethoven 0
-    :|
-
-Beethoven x |:
-    {raw_notes}
-    :|
-"""
-            
-            with open(bzl_path, 'w', encoding='utf-8') as f:
-                f.write(bzl_content)
-            
-            print(f"--- Ejecutando main.py para {song_name} ---")
-            result = subprocess.run(["python3", "main.py", song_name], capture_output=True, text=True, check=True)
-            print("LOGS DE MAIN.PY:")
-            print(result.stdout)
-            
+            subprocess.run(["python3", "main.py", song_name], check=True)
         except subprocess.CalledProcessError as e:
-            print("--- ERROR EN SUBPROCESS ---")
-            print(e.stderr)
-        except Exception as e:
-            print("--- EXCEPCIÓN GENERAL EN FLASK ---")
-            traceback.print_exc()
+            print(f"Error al ejecutar el compilador: {e}")
         
         audio_filename = f"{song_name}.mp3"
         return render_template('index.html', audio_file=audio_filename)
