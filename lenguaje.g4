@@ -1,11 +1,11 @@
 grammar lenguaje;
 
 programa
-    : main EOF
+    : main* EOF
     ;
 
 main
-    : 'Main' '|:' instruccion* ':|'
+    : ID '|:' instruccion* ':|'
     ;
 
 instruccion
@@ -13,8 +13,7 @@ instruccion
     | '(:)' NOTA=INT
     ;
 
-ID  : [a-zA-Z]+ ;
+ID : [a-zA-Z]+ ;
 INT : [0-9]+ ;
-WS  : [ \t\r\n]+ -> skip ;
-// Ignorar comentarios de doble barra
+WS : [ \t\r\n]+ -> skip ;
 COMMENT : '//' ~[\r\n]* -> skip ;

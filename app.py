@@ -21,9 +21,18 @@ def generate():
         os.makedirs(PROGRAMA_DIR, exist_ok=True)
         bzl_path = os.path.join(PROGRAMA_DIR, f"{song_name}.bzl")
         
-        # Guardar exactamente las notas escritas en el textarea
+        # Envolver las notas del usuario en la estructura que exige la gramática
+        bzl_content = f"""Main |:
+    Beethoven 0
+    :|
+
+Beethoven x |:
+    {raw_notes}
+    :|
+"""
+        
         with open(bzl_path, 'w', encoding='utf-8') as f:
-            f.write(raw_notes)
+            f.write(bzl_content)
         
         try:
             subprocess.run(["python3", "main.py", song_name], check=True)
