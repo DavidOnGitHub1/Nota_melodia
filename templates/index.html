@@ -66,8 +66,8 @@
             <input type="text" id="song_name" name="song_name" value="melodia" required>
 
             <label for="notes">Notas musicales:</label>
-            <!-- Textarea limpio sin notas por defecto -->
-            <textarea id="notes" name="notes" rows="8" placeholder="Ejemplo:&#10;f4&#10;g4&#10;a4" required></textarea>
+            <!-- Muestra las notas guardadas para que no se borren -->
+            <textarea id="notes" name="notes" rows="8" placeholder="Ejemplo:&#10;f4&#10;g4&#10;a4" required>{{ notes if notes else '' }}</textarea>
 
             <button type="submit">Generar Melodía</button>
         </form>
@@ -81,8 +81,9 @@
                     Tu navegador no soporta el elemento de audio.
                 </audio>
                 
-                <!-- Botón para descargar la partitura en PDF -->
-                <a href="{{ url_for('download_file', filename=pdf_file) }}" class="btn-pdf" target="_blank">📄 Descargar Partitura PDF</a>
+                {% if pdf_file %}
+                    <a href="{{ url_for('download_file', filename=pdf_file) }}" class="btn-pdf" target="_blank">📄 Descargar Partitura PDF</a>
+                {% endif %}
             {% else %}
                 <p style="color: #888;">Escribe tus notas y genera tu música.</p>
             {% endif %}

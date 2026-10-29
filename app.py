@@ -9,7 +9,7 @@ PROGRAMA_DIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'program
 
 @app.route('/')
 def index():
-    return render_template('index.html', audio_file=None, pdf_file=None)
+    return render_template('index.html', audio_file=None, pdf_file=None, notes="")
 
 @app.route('/generate', methods=['GET', 'POST'])
 def generate():
@@ -31,7 +31,9 @@ def generate():
         
         audio_filename = f"{song_name}.mp3"
         pdf_filename = f"{song_name}.pdf"
-        return render_template('index.html', audio_file=audio_filename, pdf_file=pdf_filename)
+        
+        # Devolvemos también 'notes=raw_notes' para que no se borre el texto de la caja
+        return render_template('index.html', audio_file=audio_filename, pdf_file=pdf_filename, notes=raw_notes)
     
     return redirect(url_for('index'))
 
